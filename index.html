@@ -5,26 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion de Stock - Société</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+        }
         .hidden { display: none; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid black; padding: 8px; text-align: center; }
         button { padding: 5px 10px; margin: 5px; }
-        input { margin: 5px; padding: 5px; }
+        input { margin: 5px; padding: 5px; width: 200px; }
+        .header { 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+            display: flex; 
+            align-items: center; 
+        }
+        .header img { width: 30px; height: 30px; margin-right: 10px; }
+        .header span { font-size: 20px; font-weight: bold; }
+        .content { margin: 20px; margin-top: 60px; }
+        #loginPage { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100%; 
+            text-align: center; 
+        }
+        #loginPage h2 { margin-bottom: 20px; }
+        #loginPage label { display: block; margin: 10px 0 5px; }
+        #loginPage input { display: block; margin: 0 auto; }
+        #loginPage button { margin-top: 20px; }
+        #error { margin-top: 10px; }
     </style>
 </head>
 <body>
+    <!-- En-tête avec logo et nom -->
+    <div class="header">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft Logo">
+        <span>Microsoft</span>
+    </div>
+
     <!-- Page de connexion -->
     <div id="loginPage">
         <h2>Connexion</h2>
-        <label>Identifiant: </label><input type="text" id="username"><br>
-        <label>Mot de passe: </label><input type="password" id="password"><br>
+        <label>Identifiant: </label><input type="text" id="username">
+        <label>Mot de passe: </label><input type="password" id="password">
         <button onclick="login()">Se connecter</button>
         <p id="error" style="color: red;"></p>
     </div>
 
     <!-- Page utilisateur (gestion stock) -->
-    <div id="userPage" class="hidden">
+    <div id="userPage" class="content hidden">
         <h2>Stock du bâtiment <span id="batimentName"></span></h2>
         <table>
             <thead>
@@ -36,7 +73,7 @@
     </div>
 
     <!-- Page admin (vue globale + gestion identifiants) -->
-    <div id="adminPage" class="hidden">
+    <div id="adminPage" class="content hidden">
         <h2>Vue globale des stocks</h2>
         <table>
             <thead id="adminTableHead"></thead>
@@ -135,7 +172,6 @@
             document.getElementById("loginPage").classList.add("hidden");
             document.getElementById("adminPage").classList.remove("hidden");
 
-            // Afficher les stocks
             const items = ["Stylo", "Cahier", "Clavier"];
             const head = document.getElementById("adminTableHead");
             const body = document.getElementById("adminTableBody");
@@ -147,7 +183,6 @@
                 body.appendChild(row);
             }
 
-            // Afficher la gestion des identifiants
             const credBody = document.getElementById("credentialsTableBody");
             credBody.innerHTML = "";
             for (let bat in buildings) {
@@ -166,15 +201,13 @@
             const newPass = document.getElementById(`pass_${oldBatiment}`).value;
 
             if (newId !== oldBatiment) {
-                // Créer une nouvelle entrée et supprimer l’ancienne
                 buildings[newId] = { password: newPass, stock: buildings[oldBatiment].stock };
                 delete buildings[oldBatiment];
             } else {
-                // Mettre à jour uniquement le mot de passe
                 buildings[oldBatiment].password = newPass;
             }
             localStorage.setItem("stocks", JSON.stringify(buildings));
-            showAdminPage(); // Rafraîchir la page
+            showAdminPage();
         }
 
         function logout() {
