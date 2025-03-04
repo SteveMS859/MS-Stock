@@ -35,19 +35,26 @@
         <button onclick="logout()">Déconnexion</button>
     </div>
 
-    <!-- Page admin (vue globale) -->
+    <!-- Page admin (vue globale + gestion identifiants) -->
     <div id="adminPage" class="hidden">
         <h2>Vue globale des stocks</h2>
         <table>
             <thead id="adminTableHead"></thead>
             <tbody id="adminTableBody"></tbody>
         </table>
+        <h3>Gérer les identifiants</h3>
+        <table id="credentialsTable">
+            <thead>
+                <tr><th>Bâtiment</th><th>Identifiant</th><th>Mot de passe</th><th>Action</th></tr>
+            </thead>
+            <tbody id="credentialsTableBody"></tbody>
+        </table>
         <button onclick="logout()">Déconnexion</button>
     </div>
 
     <script>
-        // Données initiales (simule une base de données)
-        const buildings = {
+        // Données initiales
+        let buildings = {
             "Bat1": { password: "MDP_Bat1", stock: { "Stylo": 50, "Cahier": 20, "Clavier": 10 } },
             "Bat2": { password: "MDP_Bat2", stock: { "Stylo": 30, "Cahier": 15, "Clavier": 5 } },
             "Bat3": { password: "MDP_Bat3", stock: { "Stylo": 40, "Cahier": 10, "Clavier": 8 } },
@@ -59,8 +66,10 @@
 
         let currentUser = null;
 
-        // Sauvegarde dans localStorage
-        if (!localStorage.getItem("stocks")) {
+        // Charger les données depuis localStorage ou initialiser
+        if (localStorage.getItem("stocks")) {
+            buildings = JSON.parse(localStorage.getItem("stocks"));
+        } else {
             localStorage.setItem("stocks", JSON.stringify(buildings));
         }
 
@@ -68,15 +77,14 @@
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
             const error = document.getElementById("error");
-            const stocks = JSON.parse(localStorage.getItem("stocks"));
 
             if (username === adminCredentials.username && password === adminCredentials.password) {
                 currentUser = "Admin";
                 showAdminPage();
             } else {
                 let found = false;
-                for (let bat in stocks) {
-                    if (username === bat && password === stocks[bat].password) {
+                for (let bat in buildings) {
+                    if (username === bat && password === buildings[bat].password) {
                         currentUser = bat;
                         showUserPage(bat);
                         found = true;
@@ -94,8 +102,7 @@
             document.getElementById("userPage").classList.remove("hidden");
             document.getElementById("batimentName").textContent = batiment;
 
-            const stocks = JSON.parse(localStorage.getItem("stocks"));
-            const stock = stocks[batiment].stock;
+            const stock = buildings[batiment].stock;
             const tableBody = document.getElementById("stockTable");
             tableBody.innerHTML = "";
 
@@ -115,13 +122,12 @@
 
         function updateStock(batiment, item, action) {
             const qty = parseInt(document.getElementById(`qty_${item}`).value) || 0;
-            const stocks = JSON.parse(localStorage.getItem("stocks"));
             if (action === "add") {
-                stocks[batiment].stock[item] += qty;
-            } else if (action === "remove" && stocks[batiment].stock[item] >= qty) {
-                stocks[batiment].stock[item] -= qty;
+                buildings[batiment].stock[item] += qty;
+            } else if (action === "remove" && buildings[batiment].stock[item] >= qty) {
+                buildings[batiment].stock[item] -= qty;
             }
-            localStorage.setItem("stocks", JSON.stringify(stocks));
+            localStorage.setItem("stocks", JSON.stringify(buildings));
             showUserPage(batiment);
         }
 
@@ -129,18 +135,46 @@
             document.getElementById("loginPage").classList.add("hidden");
             document.getElementById("adminPage").classList.remove("hidden");
 
-            const stocks = JSON.parse(localStorage.getItem("stocks"));
+            // Afficher les stocks
             const items = ["Stylo", "Cahier", "Clavier"];
             const head = document.getElementById("adminTableHead");
             const body = document.getElementById("adminTableBody");
-
             head.innerHTML = "<tr><th>Bâtiment</th>" + items.map(i => `<th>${i}</th>`).join("") + "</tr>";
             body.innerHTML = "";
-            for (let bat in stocks) {
+            for (let bat in buildings) {
                 const row = document.createElement("tr");
-                row.innerHTML = `<td>${bat}</td>` + items.map(i => `<td>${stocks[bat].stock[i]}</td>`).join("");
+                row.innerHTML = `<td>${bat}</td>` + items.map(i => `<td>${buildings[bat].stock[i]}</td>`).join("");
                 body.appendChild(row);
             }
+
+            // Afficher la gestion des identifiants
+            const credBody = document.getElementById("credentialsTableBody");
+            credBody.innerHTML = "";
+            for (let bat in buildings) {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${bat}</td>
+                    <td><input type="text" id="id_${bat}" value="${bat}"></td>
+                    <td><input type="text" id="pass_${bat}" value="${buildings[bat].password}"></td>
+                    <td><button onclick="updateCredentials('${bat}')">Mettre à jour</button></td>`;
+                credBody.appendChild(row);
+            }
+        }
+
+        function updateCredentials(oldBatiment) {
+            const newId = document.getElementById(`id_${oldBatiment}`).value;
+            const newPass = document.getElementById(`pass_${oldBatiment}`).value;
+
+            if (newId !== oldBatiment) {
+                // Créer une nouvelle entrée et supprimer l’ancienne
+                buildings[newId] = { password: newPass, stock: buildings[oldBatiment].stock };
+                delete buildings[oldBatiment];
+            } else {
+                // Mettre à jour uniquement le mot de passe
+                buildings[oldBatiment].password = newPass;
+            }
+            localStorage.setItem("stocks", JSON.stringify(buildings));
+            showAdminPage(); // Rafraîchir la page
         }
 
         function logout() {
