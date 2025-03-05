@@ -5,21 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion de Stock Informatique</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; height: 100vh; position: relative; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh; 
+            position: relative; 
+        }
         .hidden { display: none !important; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid black; padding: 8px; text-align: center; }
         button { padding: 5px 10px; margin: 5px; }
         input { margin: 5px; padding: 5px; width: 200px; }
-        .header { position: absolute; top: 10px; left: 10px; display: flex; align-items: center; z-index: 10; }
+        .header { 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+            display: flex; 
+            align-items: center; 
+            z-index: 10; 
+        }
         .header img { width: 30px; height: 30px; margin-right: 10px; }
         .header span { font-size: 20px; font-weight: bold; }
-        .content { margin: 20px; margin-top: 20px; }
+        .content { 
+            margin: 20px; 
+            margin-top: 20px; 
+        }
         #loginPage { 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            height: 100vh; text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            text-align: center; 
             background-image: url('https://www.ginjfo.com/wp-content/uploads/2017/03/Wallpaper_WCU_01.jpg'); 
-            background-size: cover; background-position: center; color: white; 
+            background-size: cover; 
+            background-position: center; 
+            color: white; /* Texte blanc pour lisibilité sur fond bleu */
         }
         #loginPage h2 { margin-bottom: 20px; }
         #loginPage label { display: block; margin: 10px 0 5px; }
@@ -29,6 +51,7 @@
     </style>
 </head>
 <body>
+    <!-- Page de connexion -->
     <div id="loginPage">
         <div class="header">
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft Logo">
@@ -41,15 +64,19 @@
         <p id="error" style="color: red;"></p>
     </div>
 
+    <!-- Page utilisateur (gestion stock) -->
     <div id="userPage" class="content hidden">
         <h2>Stock du bâtiment <span id="batimentName"></span></h2>
         <table>
-            <thead><tr><th>Objet</th><th>Quantité</th><th>Action</th></tr></thead>
+            <thead>
+                <tr><th>Objet</th><th>Quantité</th><th>Action</th></tr>
+            </thead>
             <tbody id="stockTable"></tbody>
         </table>
         <button onclick="logout()">Déconnexion</button>
     </div>
 
+    <!-- Page admin (vue globale) -->
     <div id="adminPage" class="content hidden">
         <h2>Vue globale des stocks</h2>
         <table>
@@ -59,25 +86,8 @@
         <button onclick="goBack()">Retour</button>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-
     <script>
-        // Remplacez ceci par votre propre configuration Firebase (depuis Project Settings)
-        const firebaseConfig = {
-  apiKey: "AIzaSyDj7--UzPbbRA2JzJ5z0Hd3i0oIbXLM8js",
-  authDomain: "ms-stock-ef703.firebaseapp.com",
-  databaseURL: "https://ms-stock-ef703-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "ms-stock-ef703",
-  storageBucket: "ms-stock-ef703.firebasestorage.app",
-  messagingSenderId: "903775640046",
-  appId: "1:903775640046:web:2f73a70e084380db6f96ff"
-};
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // Données initiales (seulement pour la première initialisation)
+        // Données initiales (stockage informatique)
         let buildings = {
             "Bat1": { password: "MDP_Bat1", stock: { "Stylo": 50, "Cahier": 20, "Clavier": 10 } },
             "Bat2": { password: "MDP_Bat2", stock: { "Stylo": 30, "Cahier": 15, "Clavier": 5 } },
@@ -90,19 +100,12 @@
 
         let currentUser = null;
 
-        // Initialiser la base si vide
-        db.ref("stocks").once("value", (snapshot) => {
-            if (!snapshot.exists()) {
-                db.ref("stocks").set(buildings);
-            }
-        });
-
-        // Écouter les mises à jour en temps réel
-        db.ref("stocks").on("value", (snapshot) => {
-            buildings = snapshot.val();
-            if (currentUser && currentUser !== "Admin") showUserPage(currentUser);
-            if (currentUser === "Admin") showAdminPage();
-        });
+        // Charger les données depuis localStorage ou initialiser
+        if (localStorage.getItem("stocks")) {
+            buildings = JSON.parse(localStorage.getItem("stocks"));
+        } else {
+            localStorage.setItem("stocks", JSON.stringify(buildings));
+        }
 
         function login() {
             const username = document.getElementById("username").value;
@@ -122,7 +125,9 @@
                         break;
                     }
                 }
-                if (!found) error.textContent = "Identifiants incorrects";
+                if (!found) {
+                    error.textContent = "Identifiants incorrects";
+                }
             }
         }
 
@@ -157,7 +162,8 @@
             } else if (action === "remove" && buildings[batiment].stock[item] >= qty) {
                 buildings[batiment].stock[item] -= qty;
             }
-            db.ref("stocks/" + batiment + "/stock").set(buildings[batiment].stock);
+            localStorage.setItem("stocks", JSON.stringify(buildings));
+            showUserPage(batiment);
         }
 
         function showAdminPage() {
