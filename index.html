@@ -108,17 +108,24 @@
         }
 
         function login() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
+            console.log("Tentative de connexion...");
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
             const error = document.getElementById("error");
 
+            console.log("Identifiant entré:", username);
+            console.log("Mot de passe entré:", password);
+
             if (username === adminCredentials.username && password === adminCredentials.password) {
+                console.log("Admin connecté");
                 currentUser = "Admin";
                 showAdminPage();
             } else {
                 let found = false;
                 for (let bat in buildings) {
+                    console.log("Comparaison avec:", bat, buildings[bat].password);
                     if (username === bat && password === buildings[bat].password) {
+                        console.log("Utilisateur connecté:", bat);
                         currentUser = bat;
                         showUserPage(bat);
                         found = true;
@@ -126,12 +133,14 @@
                     }
                 }
                 if (!found) {
+                    console.log("Échec de connexion");
                     error.textContent = "Identifiants incorrects";
                 }
             }
         }
 
         function showUserPage(batiment) {
+            console.log("Affichage page utilisateur pour:", batiment);
             document.getElementById("loginPage").classList.add("hidden");
             document.getElementById("userPage").classList.remove("hidden");
             document.getElementById("adminPage").classList.add("hidden");
@@ -156,6 +165,7 @@
         }
 
         function updateStock(batiment, item, action) {
+            console.log("Mise à jour stock:", batiment, item, action);
             const qty = parseInt(document.getElementById(`qty_${item}`).value) || 0;
             if (action === "add") {
                 buildings[batiment].stock[item] += qty;
@@ -167,6 +177,7 @@
         }
 
         function showAdminPage() {
+            console.log("Affichage page Admin");
             document.getElementById("loginPage").classList.add("hidden");
             document.getElementById("userPage").classList.add("hidden");
             document.getElementById("adminPage").classList.remove("hidden");
@@ -184,6 +195,7 @@
         }
 
         function goBack() {
+            console.log("Retour à la page de connexion");
             document.getElementById("adminPage").classList.add("hidden");
             document.getElementById("userPage").classList.add("hidden");
             document.getElementById("loginPage").classList.remove("hidden");
@@ -193,6 +205,7 @@
         }
 
         function logout() {
+            console.log("Déconnexion");
             currentUser = null;
             document.getElementById("loginPage").classList.remove("hidden");
             document.getElementById("userPage").classList.add("hidden");
