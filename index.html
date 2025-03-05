@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion de Stock - Société</title>
+    <title>Gestion de Stock Informatique</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -72,25 +72,18 @@
         <button onclick="logout()">Déconnexion</button>
     </div>
 
-    <!-- Page admin (vue globale + gestion identifiants) -->
+    <!-- Page admin (vue globale) -->
     <div id="adminPage" class="content hidden">
         <h2>Vue globale des stocks</h2>
         <table>
             <thead id="adminTableHead"></thead>
             <tbody id="adminTableBody"></tbody>
         </table>
-        <h3>Gérer les identifiants</h3>
-        <table id="credentialsTable">
-            <thead>
-                <tr><th>Bâtiment</th><th>Identifiant</th><th>Mot de passe</th><th>Action</th></tr>
-            </thead>
-            <tbody id="credentialsTableBody"></tbody>
-        </table>
         <button onclick="logout()">Déconnexion</button>
     </div>
 
     <script>
-        // Données initiales
+        // Données initiales (stockage informatique)
         let buildings = {
             "Bat1": { password: "MDP_Bat1", stock: { "Stylo": 50, "Cahier": 20, "Clavier": 10 } },
             "Bat2": { password: "MDP_Bat2", stock: { "Stylo": 30, "Cahier": 15, "Clavier": 5 } },
@@ -182,32 +175,6 @@
                 row.innerHTML = `<td>${bat}</td>` + items.map(i => `<td>${buildings[bat].stock[i]}</td>`).join("");
                 body.appendChild(row);
             }
-
-            const credBody = document.getElementById("credentialsTableBody");
-            credBody.innerHTML = "";
-            for (let bat in buildings) {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${bat}</td>
-                    <td><input type="text" id="id_${bat}" value="${bat}"></td>
-                    <td><input type="text" id="pass_${bat}" value="${buildings[bat].password}"></td>
-                    <td><button onclick="updateCredentials('${bat}')">Mettre à jour</button></td>`;
-                credBody.appendChild(row);
-            }
-        }
-
-        function updateCredentials(oldBatiment) {
-            const newId = document.getElementById(`id_${oldBatiment}`).value;
-            const newPass = document.getElementById(`pass_${oldBatiment}`).value;
-
-            if (newId !== oldBatiment) {
-                buildings[newId] = { password: newPass, stock: buildings[oldBatiment].stock };
-                delete buildings[oldBatiment];
-            } else {
-                buildings[oldBatiment].password = newPass;
-            }
-            localStorage.setItem("stocks", JSON.stringify(buildings));
-            showAdminPage();
         }
 
         function logout() {
